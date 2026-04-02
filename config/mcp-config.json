@@ -1,0 +1,23 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/home/aiuser/staging"
+      ],
+      "description": "Read/write access to staging directory only"
+    },
+    "shell": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-shell",
+        "--allowed-commands",
+        "php -l,git status,git log,git diff,git add,git commit,ls,cat,head,tail"
+      ],
+      "description": "Restricted shell command execution"
+    }
+  }
+}
