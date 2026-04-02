@@ -1,25 +1,30 @@
-version: '3.8'
-
 services:
   open-webui:
     image: ghcr.io/open-webui/open-webui:main
     container_name: open-webui
     restart: unless-stopped
-    ports:
-      - "127.0.0.1:3000:8080"   # localhost only — proxied via Apache/Nginx
+    # host network mode required on CloudLinux — Docker bridge blocked by CSF
+    network_mode: host
     environment:
+      - PORT=3000
+      - HOST=0.0.0.0
       - OPENAI_API_BASE_URL=https://openrouter.ai/api/v1
       - OPENAI_API_KEY=${OPENROUTER_API_KEY}
       - WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY}
       - ENABLE_SIGNUP=false
+      - ENABLE_OLLAMA_API=false
+      # Prevents startup hang on CloudLinux — Open WebUI tries to update
+      # HuggingFace models on every boot, which hangs the event loop
+      - ENABLE_BASE_MODELS_CACHE=false
+      - HF_HUB_OFFLINE=1
+      - TRANSFORMERS_OFFLINE=1
+      - RAG_EMBEDDING_MODEL_AUTO_UPDATE=false
+      - RAG_RERANKING_MODEL_AUTO_UPDATE=false
+      # API timeouts
+      - AIOHTTP_CLIENT_TIMEOUT=15
+      - AIOHTTP_CLIENT_TIMEOUT_OPENAI_MODEL_LIST=10
     volumes:
       - open-webui-data:/app/backend/data
-    networks:
-      - webui-net
 
 volumes:
   open-webui-data:
-
-networks:
-  webui-net:
-    driver: bridge
