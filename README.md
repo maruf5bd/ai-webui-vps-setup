@@ -194,6 +194,61 @@ Proxy: ON (orange cloud)
 SSL mode: Full
 ```
 
+## Changing the API Key
+
+To swap the OpenRouter API key (or any env variable):
+
+```bash
+# SSH in as root
+nano /opt/openwebui/.env
+# Edit OPENROUTER_API_KEY=sk-or-v1-...
+# Save: Ctrl+O, Enter, Ctrl+X
+
+cd /opt/openwebui
+docker compose down && docker compose up -d
+```
+
+The `.env` file is `chmod 600` (root-only). Changes take effect after restart.
+
+## Swapping the Subdomain
+
+Use the included Python script to move Open WebUI to a different subdomain prefix
+(e.g. `chat.forexrobots.co.za` → `fx.forexrobots.co.za`) without touching the root domain:
+
+```bash
+# Interactive
+python3 scripts/swap-subdomain.py
+
+# Or with flags
+python3 scripts/swap-subdomain.py --from chat --to fx
+```
+
+The script will:
+1. Create the new subdomain in cPanel via WHM API
+2. Write Apache proxy config for the new subdomain
+3. Remove the proxy config from the old subdomain
+4. Rebuild and reload Apache
+5. Test the new URL and print Cloudflare DNS instructions if no record exists
+
+> After swapping, add the new subdomain's A record in Cloudflare manually (cPanel DNS is ignored when Cloudflare is authoritative).
+
+## Deployment Status
+
+| Requirement | Status |
+|---|---|
+| Open WebUI on OpenRouter | Done — running on port 3000 |
+| Docker CloudLinux fixes | Done — `network_mode: host`, HF offline flags |
+| Restricted `aiuser` | Done — `setup-user.sh` |
+| Staging workflow | Done — `deploy.sh` with PHP lint gate |
+| Git bare repo + rollback | Done — `setup-git.sh` + post-receive hook |
+| Apache reverse proxy | Done — `apache-proxy.conf` + userdata placement |
+| Subdomain swap script | Done — `scripts/swap-subdomain.py` |
+| Signup locked | Done — `ENABLE_SIGNUP=false` |
+| chat.forexrobots.co.za DNS | Pending — add A record in Cloudflare |
+| Brave Search | Pending — Phase 5 |
+| MCP tool layer | Pending — Phase 6 |
+| Telegram bot | Pending — Phase 7 |
+
 ## Roadmap
 
 - [x] Phase 1: CloudLinux + Docker + CSF fix
