@@ -23,8 +23,29 @@ services:
       # API timeouts
       - AIOHTTP_CLIENT_TIMEOUT=15
       - AIOHTTP_CLIENT_TIMEOUT_OPENAI_MODEL_LIST=10
+      # S3/MinIO storage for uploaded files
+      - STORAGE_PROVIDER=s3
+      - S3_ENDPOINT_URL=http://127.0.0.1:9000
+      - S3_ACCESS_KEY_ID=${MINIO_ROOT_USER}
+      - S3_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD}
+      - S3_BUCKET_NAME=openwebui
+      - S3_REGION_NAME=us-east-1
     volumes:
       - open-webui-data:/app/backend/data
+
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    restart: unless-stopped
+    # host network mode required on CloudLinux — Docker bridge blocked by CSF
+    network_mode: host
+    command: server /data --address "127.0.0.1:9000" --console-address "0.0.0.0:9001"
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+    volumes:
+      # bind mount to real disk — data lives at /opt/minio/data on the host
+      - /opt/minio/data:/data
 
 volumes:
   open-webui-data:
